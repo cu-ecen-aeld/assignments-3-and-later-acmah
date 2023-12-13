@@ -1,5 +1,10 @@
 #include "systemcalls.h"
-
+#include <sys/types.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <stdio.h>
+#include <errno.h>
 /**
  * @param cmd the command to execute with system()
  * @return true if the command in @param cmd was executed
@@ -17,7 +22,7 @@ bool do_system(const char *cmd)
  *   or false() if it returned a failure
 */
 
-    return true;
+    return 0 == system(cmd);
 }
 
 /**
@@ -34,8 +39,47 @@ bool do_system(const char *cmd)
 *   by the command issued in @param arguments with the specified arguments.
 */
 
+int do_execv(char ** command)
+{
+    pid_t pid = fork();
+    if (0 == pid)
+    {
+        // this is child
+
+        execv(command[0], command);
+        printf("exec error, exiting: %s\n", command[0]);
+        exit(EXIT_FAILURE);
+    }
+    else if (-1 == pid)
+    {
+        printf("fork failed\n");
+        // error
+        return EXIT_FAILURE;
+    }
+
+    // this is parent
+    int status;
+    if (-1 == waitpid(pid, &status, 0))
+    {
+        printf("parent failed to wait\n");
+        return EXIT_FAILURE;
+    }
+    printf("child finished\n");
+    if ( WIFEXITED(status) )
+    {
+        int es = WEXITSTATUS(status);
+        printf("Exit status was %d\n", es);
+        if (es == EXIT_FAILURE)
+        {
+            return EXIT_FAILURE;
+        }
+    }
+    return EXIT_SUCCESS;
+}
+
 bool do_exec(int count, ...)
 {
+    printf("do_exec...\n");
     va_list args;
     va_start(args, count);
     char * command[count+1];
@@ -47,7 +91,7 @@ bool do_exec(int count, ...)
     command[count] = NULL;
     // this line is to avoid a compile warning before your implementation is complete
     // and may be removed
-    command[count] = command[count];
+    // command[count] = command[count];
 
 /*
  * TODO:
@@ -59,9 +103,12 @@ bool do_exec(int count, ...)
  *
 */
 
+    printf("3rd: %s\n", command[2]);
+    int status = do_execv(command);
     va_end(args);
+    printf("Status=%d\n", status);
 
-    return true;
+    return status == EXIT_SUCCESS;
 }
 
 /**
@@ -71,6 +118,8 @@ bool do_exec(int count, ...)
 */
 bool do_exec_redirect(const char *outputfile, int count, ...)
 {
+    printf("do_exec_redirect...\n");
+
     va_list args;
     va_start(args, count);
     char * command[count+1];
@@ -82,8 +131,8 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
     command[count] = NULL;
     // this line is to avoid a compile warning before your implementation is complete
     // and may be removed
-    command[count] = command[count];
-
+    // command[count] = command[count];
+// 
 
 /*
  * TODO
@@ -92,8 +141,13 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
+    // printf("%s\n", outputfile);
+    fflush(stdout);
+    freopen(outputfile, "w", stdout);
+
+    int status = do_execv(command);
 
     va_end(args);
-
-    return true;
+    // fclose(fp);
+    return status == EXIT_SUCCESS;
 }

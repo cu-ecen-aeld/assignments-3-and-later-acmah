@@ -53,12 +53,16 @@ fi
 #make clean
 #make
 
+echo $NUMFILES
 for i in $( seq 1 $NUMFILES)
 do
-	./writer.sh "$WRITEDIR/${username}$i.txt" "$WRITESTR"
+	echo $i
+	./writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
 done
 
 OUTPUTSTRING=$(./finder.sh "$WRITEDIR" "$WRITESTR")
+
+echo "$OUTPUTSTRING"
 
 # remove temporary directories
 # rm -rf /tmp/aeld-data
