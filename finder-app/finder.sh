@@ -1,5 +1,4 @@
-
-#!bin/sh
+#!/bin/sh
 
 # 9) Write a shell script finder-app/finder.sh as described below:
 
