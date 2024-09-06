@@ -36,7 +36,7 @@ rm -rf "${WRITEDIR}"
 assignment=`cat conf/assignment.txt`
 echo "assignment=$assignment"
 
-if [ $assignment = 'assignment1' ]
+if [ $assignment != 'assignment1' ]
 then
 	mkdir -p "$WRITEDIR"
 
@@ -57,7 +57,6 @@ fi
 echo $NUMFILES
 for i in $( seq 1 $NUMFILES)
 do
-	echo $i
 	./writer "$WRITEDIR/${username}$i.txt" "$WRITESTR"
 done
 
